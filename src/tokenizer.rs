@@ -68,6 +68,7 @@ pub enum Keyword {
 }
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum TokenType {
+    Attribute,
     Identifier,
     Operator(Operator),
     Keyword(Keyword),
@@ -203,6 +204,16 @@ impl<'a> Tokenizer<'a> {
             TokenType::String
         }))
     }
+    fn attribute(&mut self)-> Option<Token> {
+        if self.here() != b'@' {
+            return None;
+        }
+        Some(self.make_token(|this| {
+            this.position += 1;
+            this.skip(|x| x.is_ascii_alphanumeric() || !x.is_ascii());
+            TokenType::Attribute
+        }))
+    }
     fn doccomment(&mut self)-> Option<Token> {
         if self.here() != b'/' && !self.next().is_some_and(|x| x == b'!') {
             return None;
@@ -298,6 +309,7 @@ impl<'a> Tokenizer<'a> {
                 .or_else(|| self.number())
                 .or_else(|| self.string())
                 .or_else(|| self.operator())
+                .or_else(|| self.attribute())
                 .or_else(|| self.doccomment())
                 .unwrap_or_else(|| self.error())
             );
