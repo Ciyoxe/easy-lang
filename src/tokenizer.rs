@@ -33,6 +33,7 @@ pub enum Operator {
     Dot,    // .
     Rng,    // ..
     Err,    // ?
+    Lam,    // ->
 
     Asg,    // =
     AddAsg, // +=
@@ -65,6 +66,7 @@ pub enum Keyword {
     Use,
     Module,
     Pub,
+    Void,
 }
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Delimiter {
@@ -159,6 +161,7 @@ impl<'a> Tokenizer<'a> {
                 b"use"    => TokenType::Keyword(Keyword::Use),
                 b"module" => TokenType::Keyword(Keyword::Module),
                 b"pub"    => TokenType::Keyword(Keyword::Pub),
+                b"void"   => TokenType::Keyword(Keyword::Void),
                 b"as"     => TokenType::Operator(Operator::As),
                 _         => TokenType::Identifier,
             }
@@ -259,6 +262,7 @@ impl<'a> Tokenizer<'a> {
             }
             b'-' => match self.next() {
                 Some(b'=') => Some(self.make_token(|t| { t.position += 2; TokenType::Operator(Operator::SubAsg) })),
+                Some(b'>') => Some(self.make_token(|t| { t.position += 2; TokenType::Operator(Operator::Lam) })),
                 _          => Some(self.make_token(|t| { t.position += 1; TokenType::Operator(Operator::Sub) }))
             }
             b'*' => match self.next() {
