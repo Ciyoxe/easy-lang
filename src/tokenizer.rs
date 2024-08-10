@@ -14,14 +14,36 @@ pub enum Number {
 }
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Operator {
-    Add,
-    Sub,
-    Mul,
-    Div,
-    AddAsg,
-    SubAsg,
-    MulAsg,
-    DivAsg,
+    Add,    // +
+    Sub,    // -
+    Mul,    // *
+    Div,    // /
+    Mod,    // %
+
+    Gt,     // >
+    Ge,     // >=
+    Lt,     // <
+    Le,     // <=
+    Ne,     // !=
+    Eq,     // ==
+
+    Or,     // |
+    And,    // &
+    Not,    // !
+    Dot,    // .
+    Rng,    // ..
+    Err,    // ?
+
+    Asg,    // =
+    AddAsg, // +=
+    SubAsg, // -=
+    MulAsg, // *=
+    DivAsg, // /=
+    ModAsg, // %=
+    AndAsg, // &=
+    OrAsg,  // |=
+
+    As,     // as
 }
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Keyword {
@@ -93,6 +115,7 @@ impl<'a> Tokenizer<'a> {
                 b"for" => TokenType::Keyword(Keyword::For),
                 b"if"  => TokenType::Keyword(Keyword::If),
                 b"el"  => TokenType::Keyword(Keyword::El),
+                b"as"  => TokenType::Operator(Operator::As),
                 _ => TokenType::Identifier,
             }
         }))
@@ -178,7 +201,40 @@ impl<'a> Tokenizer<'a> {
                 Some(b'=') => Some(self.make_token(|t| { t.position += 2; TokenType::Operator(Operator::DivAsg) })),
                 _          => Some(self.make_token(|t| { t.position += 1; TokenType::Operator(Operator::Div) }))
             }
-            _ => None,
+            b'%' => match self.next() {
+                Some(b'=') => Some(self.make_token(|t| { t.position += 2; TokenType::Operator(Operator::ModAsg) })),
+                _          => Some(self.make_token(|t| { t.position += 1; TokenType::Operator(Operator::Mod) }))
+            }
+            b'|' => match self.next() {
+                Some(b'=') => Some(self.make_token(|t| { t.position += 2; TokenType::Operator(Operator::OrAsg) })),
+                _          => Some(self.make_token(|t| { t.position += 1; TokenType::Operator(Operator::Or) }))
+            }
+            b'&' => match self.next() {
+                Some(b'=') => Some(self.make_token(|t| { t.position += 2; TokenType::Operator(Operator::AndAsg) })),
+                _          => Some(self.make_token(|t| { t.position += 1; TokenType::Operator(Operator::And) }))
+            }
+            b'!' => match self.next() {
+                Some(b'=') => Some(self.make_token(|t| { t.position += 2; TokenType::Operator(Operator::Ne) })),
+                _          => Some(self.make_token(|t| { t.position += 1; TokenType::Operator(Operator::Not) }))
+            }
+            b'>' => match self.next() {
+                Some(b'=') => Some(self.make_token(|t| { t.position += 2; TokenType::Operator(Operator::Ge) })),
+                _          => Some(self.make_token(|t| { t.position += 1; TokenType::Operator(Operator::Gt) }))
+            }
+            b'<' => match self.next() {
+                Some(b'=') => Some(self.make_token(|t| { t.position += 2; TokenType::Operator(Operator::Le) })),
+                _          => Some(self.make_token(|t| { t.position += 1; TokenType::Operator(Operator::Lt) }))
+            }
+            b'=' => match self.next() {
+                Some(b'=') => Some(self.make_token(|t| { t.position += 2; TokenType::Operator(Operator::Eq) })),
+                _          => Some(self.make_token(|t| { t.position += 1; TokenType::Operator(Operator::Asg) }))
+            }
+            b'.' => match self.next() {
+                Some(b'.') => Some(self.make_token(|t| { t.position += 2; TokenType::Operator(Operator::Rng) })),
+                _          => Some(self.make_token(|t| { t.position += 1; TokenType::Operator(Operator::Dot) }))
+            }
+            b'?' => Some(self.make_token(|t| { t.position += 1; TokenType::Operator(Operator::Err) })),
+            _    => None,
         }
     }
     fn error(&mut self)-> Token {
