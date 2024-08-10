@@ -67,9 +67,22 @@ pub enum Keyword {
     Pub,
 }
 #[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Delimiter {
+    Comma,      // ,
+    Colon,      // :
+    Semicolon,  // ;
+    RoundL,     // (
+    RoundR,     // )
+    SquareL,    // [
+    SquareR,    // ]
+    CurvedL,    // {
+    CurvedR,    // }
+}
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum TokenType {
     Attribute,
     Identifier,
+    Delimiter(Delimiter),
     Operator(Operator),
     Keyword(Keyword),
     Number(Number),
@@ -204,6 +217,20 @@ impl<'a> Tokenizer<'a> {
             TokenType::String
         }))
     }
+    fn delimiter(&mut self)-> Option<Token> {
+        match self.here() {
+            b',' => Some(self.make_token(|t| { t.position += 1; TokenType::Delimiter(Delimiter::Comma) })),
+            b':' => Some(self.make_token(|t| { t.position += 1; TokenType::Delimiter(Delimiter::Colon) })),
+            b';' => Some(self.make_token(|t| { t.position += 1; TokenType::Delimiter(Delimiter::Semicolon) })),
+            b'(' => Some(self.make_token(|t| { t.position += 1; TokenType::Delimiter(Delimiter::RoundL) })),
+            b')' => Some(self.make_token(|t| { t.position += 1; TokenType::Delimiter(Delimiter::RoundR) })),
+            b'[' => Some(self.make_token(|t| { t.position += 1; TokenType::Delimiter(Delimiter::SquareL) })),
+            b']' => Some(self.make_token(|t| { t.position += 1; TokenType::Delimiter(Delimiter::SquareR) })),
+            b'{' => Some(self.make_token(|t| { t.position += 1; TokenType::Delimiter(Delimiter::CurvedL) })),
+            b'}' => Some(self.make_token(|t| { t.position += 1; TokenType::Delimiter(Delimiter::CurvedR) })),
+            _    => None
+        }
+    }
     fn attribute(&mut self)-> Option<Token> {
         if self.here() != b'@' {
             return None;
@@ -310,6 +337,7 @@ impl<'a> Tokenizer<'a> {
                 .or_else(|| self.string())
                 .or_else(|| self.operator())
                 .or_else(|| self.attribute())
+                .or_else(|| self.delimiter())
                 .or_else(|| self.doccomment())
                 .unwrap_or_else(|| self.error())
             );
