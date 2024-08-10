@@ -47,9 +47,24 @@ pub enum Operator {
 }
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Keyword {
-    For,
     If,
     El,
+    Ef,
+    Match,
+    For,
+    In,
+    While,
+    Loop,
+    Let,
+    Var,
+    Fun,
+    Type,
+    Struct,
+    Enum,
+    Trait,
+    Use,
+    Module,
+    Pub,
 }
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum TokenType {
@@ -112,11 +127,26 @@ impl<'a> Tokenizer<'a> {
         }
         Some(self.make_token(|this| {
             match this.skip_and_capture(|x| x.is_ascii_alphanumeric() || !x.is_ascii()) {
-                b"for" => TokenType::Keyword(Keyword::For),
-                b"if"  => TokenType::Keyword(Keyword::If),
-                b"el"  => TokenType::Keyword(Keyword::El),
-                b"as"  => TokenType::Operator(Operator::As),
-                _ => TokenType::Identifier,
+                b"if"     => TokenType::Keyword(Keyword::If),
+                b"el"     => TokenType::Keyword(Keyword::El),
+                b"ef"     => TokenType::Keyword(Keyword::Ef),
+                b"match"  => TokenType::Keyword(Keyword::Match),
+                b"for"    => TokenType::Keyword(Keyword::For),
+                b"in"     => TokenType::Keyword(Keyword::In),
+                b"while"  => TokenType::Keyword(Keyword::While),
+                b"loop"   => TokenType::Keyword(Keyword::Loop),
+                b"let"    => TokenType::Keyword(Keyword::Let),
+                b"var"    => TokenType::Keyword(Keyword::Var),
+                b"fun"    => TokenType::Keyword(Keyword::Fun),
+                b"type"   => TokenType::Keyword(Keyword::Type),
+                b"struct" => TokenType::Keyword(Keyword::Struct),
+                b"enum"   => TokenType::Keyword(Keyword::Enum),
+                b"trait"  => TokenType::Keyword(Keyword::Trait),
+                b"use"    => TokenType::Keyword(Keyword::Use),
+                b"module" => TokenType::Keyword(Keyword::Module),
+                b"pub"    => TokenType::Keyword(Keyword::Pub),
+                b"as"     => TokenType::Operator(Operator::As),
+                _         => TokenType::Identifier,
             }
         }))
     }
