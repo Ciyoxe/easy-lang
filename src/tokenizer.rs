@@ -137,6 +137,8 @@ impl<'a> Tokenizer<'a> {
         self.source.get(self.position + 1).copied()
     }
 
+    
+    /// Words, like 'if', 'let', 'fun', 'abc123', 'some_identifiers'    
     fn word(&mut self)-> Option<Token> {
         if self.here().is_ascii() && !self.here().is_ascii_alphabetic() && !self.here() == b'_' {
             return None;
@@ -167,6 +169,7 @@ impl<'a> Tokenizer<'a> {
             }
         }))
     }
+    /// Numbers, like '123.45', '0x123', '0b1010'
     fn number(&mut self)-> Option<Token> {
         if !self.here().is_ascii_digit() {
             return None;
@@ -197,6 +200,7 @@ impl<'a> Tokenizer<'a> {
             }
         }))
     }
+    /// Strings, like '"abc"', symbols can be escaped with '\', like '"abc\"def"'
     fn string(&mut self)-> Option<Token> {
         if self.here() != b'"' {
             return None;
@@ -220,6 +224,7 @@ impl<'a> Tokenizer<'a> {
             TokenType::String
         }))
     }
+    /// Delimiters, like ',', ':', ';', '(', ')', '[', ']'
     fn delimiter(&mut self)-> Option<Token> {
         match self.here() {
             b',' => Some(self.make_token(|t| { t.position += 1; TokenType::Delimiter(Delimiter::Comma) })),
@@ -234,6 +239,7 @@ impl<'a> Tokenizer<'a> {
             _    => None
         }
     }
+    /// Attribute, like '@attribute'
     fn attribute(&mut self)-> Option<Token> {
         if self.here() != b'@' {
             return None;
@@ -244,6 +250,7 @@ impl<'a> Tokenizer<'a> {
             TokenType::Attribute
         }))
     }
+    /// DocComment, like '/! some docs'
     fn doccomment(&mut self)-> Option<Token> {
         if self.here() != b'/' && !self.next().is_some_and(|x| x == b'!') {
             return None;
@@ -254,6 +261,7 @@ impl<'a> Tokenizer<'a> {
             TokenType::DocComment
         }))
     }
+    /// Operators, like '+', '-', '*', '/', etc
     fn operator(&mut self)-> Option<Token> {
         match self.here() {
             b'+' => match self.next() {
@@ -309,6 +317,7 @@ impl<'a> Tokenizer<'a> {
             _    => None,
         }
     }
+    /// Skip a symbol (or several non-ascii symbols) and save it as a error
     fn error(&mut self)-> Token {
         self.make_token(|this| {
             this.position += 1;
@@ -316,6 +325,7 @@ impl<'a> Tokenizer<'a> {
             TokenType::Error(Error::UnknownSymbol)
         })
     }
+    /// Skip whitespaces and comments
     fn skip_ignored(&mut self) {
         loop {
             self.skip(|x| x.is_ascii_whitespace());
@@ -327,6 +337,7 @@ impl<'a> Tokenizer<'a> {
             }
         }
     }
+
     pub fn tokenize(&mut self)-> Vec<Token> {
         let mut tokens = Vec::new();
 
