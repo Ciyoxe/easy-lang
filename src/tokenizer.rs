@@ -138,11 +138,11 @@ impl<'a> Tokenizer<'a> {
     }
 
     fn word(&mut self)-> Option<Token> {
-        if self.here().is_ascii() && !self.here().is_ascii_alphabetic() {
+        if self.here().is_ascii() && !self.here().is_ascii_alphabetic() && !self.here() == b'_' {
             return None;
         }
         Some(self.make_token(|this| {
-            match this.skip_and_capture(|x| x.is_ascii_alphanumeric() || !x.is_ascii()) {
+            match this.skip_and_capture(|x| x.is_ascii_alphanumeric() || !x.is_ascii() || x == b'_') {
                 b"if"     => TokenType::Keyword(Keyword::If),
                 b"el"     => TokenType::Keyword(Keyword::El),
                 b"ef"     => TokenType::Keyword(Keyword::Ef),
